@@ -1,0 +1,48 @@
+@model List<SinavYonetimUygulamasi.Models.Course>
+@{
+    ViewData["Title"] = "Ders Seçimi";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("CourseList", "Course")">Derslerim</a> /</span> Konu Eklemek İçin Ders Seçimi
+    </h4>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Konu eklemek istediğiniz dersi seçin</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+                    @foreach (var course in Model)
+                    {
+                        <div class="col">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">@course.Name</h5>
+                                    <p class="card-text">
+                                        <small class="text-muted">Oluşturulma: @(course.CreatedAt?.ToString("dd/MM/yyyy") ?? "-")</small>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="@Url.Action("ManageTopics", "Course", new { id = course.Id })" class="btn btn-primary d-block">Bu Derse Konu Ekle</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <p class="mb-0">Henüz ders eklemesi yapmadınız. Konu ekleyebilmek için öncelikle ders eklemelisiniz.</p>
+                </div>
+                <a href="@Url.Action("Create", "Course")" class="btn btn-primary">
+                    <i class="bx bx-plus me-1"></i> Ders Ekle
+                </a>
+            }
+        </div>
+    </div>
+</div> 

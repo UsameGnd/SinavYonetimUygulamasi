@@ -1,0 +1,295 @@
+@model SinavYonetimUygulamasi.Models.ViewModels.ExamCreateViewModel
+
+@{
+    ViewData["Title"] = "Yeni Sınav Oluştur";
+}
+
+<div class="container">
+    <h2>@ViewData["Title"]</h2>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="examForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="control-label">Sınav Başlığı</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="control-label">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ExamDuration" class="control-label">Sınav Süresi (Dakika)</label>
+                                    <input asp-for="ExamDuration" class="form-control" type="number" min="1" max="480" />
+                                    <span asp-validation-for="ExamDuration" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label asp-for="PassingScore" class="control-label">Geçme Notu</label>
+                                    <input asp-for="PassingScore" class="form-control" type="number" min="0" max="100" />
+                                    <span asp-validation-for="PassingScore" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label asp-for="QuestionCount" class="control-label">Soru Sayısı</label>
+                                    <input asp-for="QuestionCount" class="form-control" type="number" min="1" max="100" />
+                                    <span asp-validation-for="QuestionCount" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input asp-for="RandomizeQuestions" class="form-check-input" />
+                                    <label asp-for="RandomizeQuestions" class="form-check-label">Soruları Karıştır</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input asp-for="ShowResults" class="form-check-input" />
+                                    <label asp-for="ShowResults" class="form-check-label">Sonuçları Göster</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input asp-for="AllowReview" class="form-check-input" />
+                                    <label asp-for="AllowReview" class="form-check-label">Gözden Geçirmeye İzin Ver</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">Soru Seçim Modu</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="btn-group mb-3" role="group">
+                                    <input type="radio" class="btn-check" name="selectionMode" id="mode1" value="manual" checked>
+                                    <label class="btn btn-outline-primary" for="mode1">Manuel Seçim</label>
+
+                                    <input type="radio" class="btn-check" name="selectionMode" id="mode2" value="randomCourse">
+                                    <label class="btn btn-outline-primary" for="mode2">Derse Göre Rastgele</label>
+
+                                    <input type="radio" class="btn-check" name="selectionMode" id="mode3" value="randomTopic">
+                                    <label class="btn btn-outline-primary" for="mode3">Konuya Göre Rastgele</label>
+                                </div>
+
+                                <!-- Mode 1: Manual Selection -->
+                                <div id="manualSelection" class="selection-mode">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-3">
+                                                <label class="control-label">Ders</label>
+                                                <select class="form-select" id="manualCourse">
+                                                    <option value="">Seçiniz...</option>
+                                                    @foreach (var course in Model.AvailableCourses)
+                                                    {
+                                                        <option value="@course.Id">@course.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-3">
+                                                <label class="control-label">Konu</label>
+                                                <select class="form-select" id="manualTopic">
+                                                    <option value="">Seçiniz...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-3">
+                                                <label class="control-label">Alt Konu (Opsiyonel)</label>
+                                                <select class="form-select" id="manualSubTopic">
+                                                    <option value="">Seçiniz...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="manualQuestions" class="mt-3">
+                                        <!-- Questions will be loaded here -->
+                                    </div>
+                                </div>
+
+                                <!-- Mode 2: Random by Course -->
+                                <div id="randomCourseSelection" class="selection-mode" style="display: none;">
+                                    <div class="form-group mb-3">
+                                        <label class="control-label">Ders</label>
+                                        <select asp-for="SelectedCourseId" class="form-select">
+                                            <option value="">Seçiniz...</option>
+                                            @foreach (var course in Model.AvailableCourses)
+                                            {
+                                                <option value="@course.Id">@course.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Mode 3: Random by Course and Topic -->
+                                <div id="randomTopicSelection" class="selection-mode" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label class="control-label">Ders</label>
+                                                <select asp-for="CourseId" class="form-select">
+                                                    <option value="">Seçiniz...</option>
+                                                    @foreach (var course in Model.AvailableCourses)
+                                                    {
+                                                        <option value="@course.Id">@course.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label class="control-label">Konu</label>
+                                                <select asp-for="SelectedTopicId" class="form-select">
+                                                    <option value="">Seçiniz...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Sınavı Oluştur</button>
+                            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            // Mode selection
+            $('input[name="selectionMode"]').change(function () {
+                $('.selection-mode').hide();
+                switch ($(this).val()) {
+                    case 'manual':
+                        $('#manualSelection').show();
+                        break;
+                    case 'randomCourse':
+                        $('#randomCourseSelection').show();
+                        break;
+                    case 'randomTopic':
+                        $('#randomTopicSelection').show();
+                        break;
+                }
+            });
+
+            // Manual mode - Course change
+            $('#manualCourse').change(function () {
+                var courseId = $(this).val();
+                if (courseId) {
+                    loadTopics(courseId);
+                    loadQuestions(courseId);
+                } else {
+                    $('#manualTopic').html('<option value="">Seçiniz...</option>');
+                    $('#manualSubTopic').html('<option value="">Seçiniz...</option>');
+                    $('#manualQuestions').empty();
+                }
+            });
+
+            // Manual mode - Topic change
+            $('#manualTopic').change(function () {
+                var courseId = $('#manualCourse').val();
+                var topicId = $(this).val();
+                if (topicId) {
+                    loadSubTopics(courseId, topicId);
+                    loadQuestions(courseId, topicId);
+                } else {
+                    $('#manualSubTopic').html('<option value="">Seçiniz...</option>');
+                    loadQuestions(courseId);
+                }
+            });
+
+            // Manual mode - SubTopic change
+            $('#manualSubTopic').change(function () {
+                var courseId = $('#manualCourse').val();
+                var topicId = $('#manualTopic').val();
+                var subTopicId = $(this).val();
+                loadQuestions(courseId, topicId, subTopicId);
+            });
+
+            // Random by Course and Topic - Course change
+            $('#CourseId').change(function () {
+                var courseId = $(this).val();
+                if (courseId) {
+                    loadTopicsForRandom(courseId);
+                } else {
+                    $('#SelectedTopicId').html('<option value="">Seçiniz...</option>');
+                }
+            });
+
+            function loadTopics(courseId) {
+                $.get('/Exam/GetTopics', { courseId: courseId }, function (data) {
+                    var options = '<option value="">Seçiniz...</option>';
+                    data.forEach(function (topic) {
+                        options += `<option value="${topic.id}">${topic.name}</option>`;
+                    });
+                    $('#manualTopic').html(options);
+                });
+            }
+
+            function loadSubTopics(courseId, topicId) {
+                $.get('/Exam/GetSubTopics', { courseId: courseId, topicId: topicId }, function (data) {
+                    var options = '<option value="">Seçiniz...</option>';
+                    data.forEach(function (subTopic) {
+                        options += `<option value="${subTopic.id}">${subTopic.name}</option>`;
+                    });
+                    $('#manualSubTopic').html(options);
+                });
+            }
+
+            function loadQuestions(courseId, topicId = null, subTopicId = null) {
+                $.get('/Exam/GetQuestions', { courseId: courseId, topicId: topicId, subTopicId: subTopicId }, function (data) {
+                    var html = '<div class="table-responsive"><table class="table table-striped">';
+                    html += '<thead><tr><th>Seç</th><th>Soru</th><th>Ders</th><th>Konu</th><th>Alt Konu</th><th>Zorluk</th></tr></thead>';
+                    html += '<tbody>';
+                    data.forEach(function (question) {
+                        html += `<tr>
+                            <td><input type="checkbox" name="SelectedQuestions" value="${question.questionId}" /></td>
+                            <td>${question.questionText}</td>
+                            <td>${question.courseName}</td>
+                            <td>${question.topicName}</td>
+                            <td>${question.subTopicName || '-'}</td>
+                            <td>${question.difficultyLevel}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table></div>';
+                    $('#manualQuestions').html(html);
+                });
+            }
+
+            function loadTopicsForRandom(courseId) {
+                $.get('/Exam/GetTopics', { courseId: courseId }, function (data) {
+                    var options = '<option value="">Seçiniz...</option>';
+                    data.forEach(function (topic) {
+                        options += `<option value="${topic.id}">${topic.name}</option>`;
+                    });
+                    $('#SelectedTopicId').html(options);
+                });
+            }
+        });
+    </script>
+} 

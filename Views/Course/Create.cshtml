@@ -1,0 +1,32 @@
+@model SinavYonetimUygulamasi.Models.Course
+@{
+    ViewData["Title"] = "Ders Ekle";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("CourseList", "Course")">Derslerim</a> /</span> Ders Ekle
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <h5 class="card-header">Yeni Ders Ekle</h5>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">Ders Adı</label>
+                            <input type="text" class="form-control" id="Name" name="Name" placeholder="Ders adını giriniz" required>
+                            <div class="invalid-feedback">Lütfen ders adını giriniz.</div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Kaydet</button>
+                            <a href="@Url.Action("CourseList", "Course")" class="btn btn-outline-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

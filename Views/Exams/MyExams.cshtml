@@ -1,0 +1,202 @@
+@model IEnumerable<SinavYonetimUygulamasi.Models.Exam>
+
+@{
+    ViewData["Title"] = "Sınavlarım";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">
+            <span class="text-muted fw-light">Eğitmen Paneli /</span> Sınavlarım
+        </h4>
+        <a href="@Url.Action("CreateExam", "Exams")" class="btn btn-primary">
+            <i class="bx bx-plus me-1"></i> Yeni Sınav
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Sınav Listesi</h5>
+            <div class="d-flex gap-2">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Sınav ara...">
+                    <button class="btn btn-outline-primary" type="button" id="searchBtn">
+                        <i class="bx bx-search"></i>
+                    </button>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bx bx-filter-alt me-1"></i> Filtrele
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" data-status="all">Tümü</a></li>
+                        <li><a class="dropdown-item" href="#" data-status="draft">Taslaklar</a></li>
+                        <li><a class="dropdown-item" href="#" data-status="active">Aktif</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive text-nowrap">
+                <table class="table table-striped border">
+                    <thead>
+                        <tr>
+                            <th>Sınav</th>
+                            <th>Ders</th>
+                            <th>Soru Sayısı</th>
+                            <th>Süre</th>
+                            <th>Geçme Notu</th>
+                            <th>Durum</th>
+                            <th>Oluşturulma</th>
+                            <th style="width: 120px;">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var exam in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">@exam.Title</h6>
+                                            @if (!string.IsNullOrEmpty(exam.Description))
+                                            {
+                                                <small class="text-muted">@exam.Description</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@exam.Course.Name</td>
+                                <td>@exam.Questions.Count</td>
+                                <td>@exam.ExamDuration dk</td>
+                                <td>@exam.PassingScore</td>
+                                <td>
+                                    @if (exam.IsDraft)
+                                    {
+                                        <span class="badge bg-warning">Taslak</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Aktif</span>
+                                    }
+                                </td>
+                                <td>@(exam.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="@Url.Action("EditExam", "Exams", new { id = exam.Id })">
+                                                    <i class="bx bx-edit-alt me-1"></i> Düzenle
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="@Url.Action("PreviewExam", "Exams", new { id = exam.Id })">
+                                                    <i class="bx bx-show me-1"></i> Önizle
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="@Url.Action("ExportExam", "Exams", new { id = exam.Id })">
+                                                    <i class="bx bx-export me-1"></i> Dışa Aktar
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="deleteExam(@exam.Id)">
+                                                    <i class="bx bx-trash me-1"></i> Sil
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Arama
+            $('#searchBtn').click(function() {
+                const searchText = $('#searchInput').val().toLowerCase();
+                $('tbody tr').each(function() {
+                    const title = $(this).find('td:first h6').text().toLowerCase();
+                    const description = $(this).find('td:first small').text().toLowerCase();
+                    const course = $(this).find('td:eq(1)').text().toLowerCase();
+                    
+                    if (title.includes(searchText) || description.includes(searchText) || course.includes(searchText)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+            
+            // Filtreleme
+            $('.dropdown-item[data-status]').click(function(e) {
+                e.preventDefault();
+                const status = $(this).data('status');
+                
+                $('.dropdown-item[data-status]').removeClass('active');
+                $(this).addClass('active');
+                
+                if (status === 'all') {
+                    $('tbody tr').show();
+                } else if (status === 'draft') {
+                    $('tbody tr').each(function() {
+                        const isDraft = $(this).find('td:eq(5) .badge').text() === 'Taslak';
+                        $(this).toggle(isDraft);
+                    });
+                } else if (status === 'active') {
+                    $('tbody tr').each(function() {
+                        const isActive = $(this).find('td:eq(5) .badge').text() === 'Aktif';
+                        $(this).toggle(isActive);
+                    });
+                }
+            });
+        });
+        
+        // Sınav silme
+        function deleteExam(examId) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: 'Bu sınav kalıcı olarak silinecek.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, Sil',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('@Url.Action("DeleteExam", "Exams")', { id: examId }, function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Başarılı!',
+                                text: 'Sınav başarıyla silindi.',
+                                icon: 'success',
+                                confirmButtonText: 'Tamam'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Hata!',
+                                text: response.error || 'Sınav silinirken bir hata oluştu.',
+                                icon: 'error',
+                                confirmButtonText: 'Tamam'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+} 

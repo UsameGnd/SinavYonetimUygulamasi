@@ -1,0 +1,94 @@
+@model IEnumerable<SinavYonetimUygulamasi.Models.Topic>
+@{
+    ViewData["Title"] = "Konuları Yönet";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("CourseList", "Course")">Derslerim</a> /</span> Konuları Yönet
+    </h4>
+
+    <partial name="_AlertsPartial" />
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Ders: <span class="text-primary">@ViewBag.CourseName</span> - Konular</h5>
+            <a href="@Url.Action("AddTopic", "Course", new { courseId = ViewBag.CourseId })" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Konu Ekle
+            </a>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+                    @foreach (var topic in Model)
+                    {
+                        <div class="col">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">@topic.Name</h5>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="badge bg-label-primary">@topic.SubTopics.Count Alt Konu</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer d-flex justify-content-between">
+                                    <a href="@Url.Action("ManageSubtopics", "Course", new { id = topic.Id })" class="btn btn-outline-primary">
+                                        <i class="bx bx-list-ul me-1"></i> Alt Konuları Yönet
+                                    </a>
+                                    <form asp-action="DeleteTopic" method="post" onsubmit="return confirm('Bu konuyu silmek istediğinize emin misiniz? Alt konuları da silinecektir.')">
+                                        <input type="hidden" name="id" value="@topic.Id" />
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            <i class="bx bx-trash me-1"></i> Sil
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <p class="mb-0">Henüz konu eklenmemiş. Yukarıdaki "Konu Ekle" butonunu kullanarak yeni konu ekleyebilirsiniz.</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="@Url.Action("CourseList", "Course")" class="btn btn-secondary">
+            <i class="bx bx-arrow-back me-1"></i> Derslere Dön
+        </a>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .dropdown-item-form {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .dropdown-item-form .dropdown-item {
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.delete-button').click(function(e) {
+                if (!confirm('Bu konuyu silmek istediğinize emin misiniz? Alt konuları da silinecektir.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+} 

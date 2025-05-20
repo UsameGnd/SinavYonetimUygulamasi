@@ -1,0 +1,47 @@
+@model SinavYonetimUygulamasi.Models.Topic
+@{
+    ViewData["Title"] = "Konu Ekle";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("CourseList", "Course")">Derslerim</a> / <a href="@Url.Action("ManageTopics", "Course", new { id = ViewBag.CourseId })">Konular</a> /</span> Konu Ekle
+    </h4>
+
+    <partial name="_AlertsPartial" />
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <h5 class="card-header">Yeni Konu Ekle</h5>
+                <div class="card-body">
+                    <form method="post" action="@Url.Action("AddTopic", "Course")">
+                        <input type="hidden" name="CourseId" value="@ViewBag.CourseId" />
+                        
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">Konu Adı</label>
+                            <input type="text" class="form-control" id="Name" name="Name" placeholder="Konu adını giriniz" required>
+                            <div class="invalid-feedback">Lütfen konu adını giriniz.</div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Kaydet</button>
+                            <a href="@Url.Action("ManageTopics", "Course", new { id = ViewBag.CourseId })" class="btn btn-outline-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Form submit olayını dinle
+        document.querySelector('form').addEventListener('submit', function(e) {
+            // Form submit işlemi öncesinde konsola bilgi yazdır
+            console.log('Form gönderiliyor... CourseId: ' + document.querySelector('input[name="CourseId"]').value);
+        });
+    </script>
+} 

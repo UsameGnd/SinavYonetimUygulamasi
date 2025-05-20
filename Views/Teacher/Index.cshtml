@@ -1,0 +1,54 @@
+@{
+    ViewData["Title"] = "Eğitmen Paneli";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">Eğitmen Paneli</h4>
+
+    <div class="row">
+        <!-- Dashboard Cards -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="menu-icon tf-icons bx bx-question-mark mb-2" style="font-size: 3rem;"></i>
+                    <h5 class="card-title">Soru Havuzu</h5>
+                    <p class="card-text">Soru ekle, düzenle ve görüntüle</p>
+                    <a href="@Url.Action("QuestionBank", "Teacher")" class="btn btn-primary">Giriş</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="menu-icon tf-icons bx bx-file mb-2" style="font-size: 3rem;"></i>
+                    <h5 class="card-title">Sınav Oluştur</h5>
+                    <p class="card-text">Yeni sınav oluştur ve düzenle</p>
+                    <a href="@Url.Action("CreateExam", "Exams")" class="btn btn-primary">Giriş</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="menu-icon tf-icons bx bx-list-check mb-2" style="font-size: 3rem;"></i>
+                    <h5 class="card-title">Sınavlarım</h5>
+                    <p class="card-text">Kayıtlı sınavları görüntüle ve indir</p>
+                    <a href="@Url.Action("MyExams", "Exams")" class="btn btn-primary">Giriş</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="menu-icon tf-icons bx bx-book mb-2" style="font-size: 3rem;"></i>
+                    <h5 class="card-title">Derslerim</h5>
+                    <p class="card-text">Ders ekle, düzenle ve konu yönetimi</p>
+                    <a href="@Url.Action("CourseList", "Course")" class="btn btn-primary">Giriş</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

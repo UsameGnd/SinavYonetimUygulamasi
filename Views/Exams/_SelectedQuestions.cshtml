@@ -1,0 +1,61 @@
+@model IEnumerable<dynamic>
+
+<div class="table-responsive text-nowrap">
+    <table class="table table-striped border">
+        <thead>
+            <tr>
+                <th style="width: 30px;">#</th>
+                <th>Soru</th>
+                <th>Alt Konu</th>
+                <th>Zorluk</th>
+                <th style="width: 80px;">İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var question in Model.Select((q, i) => new { Question = q, Index = i + 1 }))
+            {
+                <tr>
+                    <td>@question.Index</td>
+                    <td>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>@(question.Question.QuestionText.Length > 100 
+                                ? question.Question.QuestionText.Substring(0, 100) + "..." 
+                                : question.Question.QuestionText)</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary ms-2" 
+                                    onclick="showQuestionDetail(@question.Question.Id)">
+                                Detay
+                            </button>
+                        </div>
+                    </td>
+                    <td>@question.Question.Subtopic.Name</td>
+                    <td>
+                        <span class="badge bg-@(question.Question.Difficulty == "Kolay" ? "success" : 
+                            question.Question.Difficulty == "Orta" ? "warning" : "danger")">
+                            @question.Question.Difficulty
+                        </span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-question" 
+                                data-question-id="@question.Question.Id">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Soru kaldırma
+        $('.remove-question').click(function() {
+            const questionId = $(this).data('question-id');
+            $.post('@Url.Action("RemoveQuestionFromSelection", "Exams")', { questionId: questionId }, function(response) {
+                if (response.success) {
+                    updateSelectedQuestions();
+                }
+            });
+        });
+    });
+</script> 

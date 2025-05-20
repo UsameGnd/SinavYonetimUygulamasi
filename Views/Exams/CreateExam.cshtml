@@ -1,0 +1,655 @@
+@{
+    ViewData["Title"] = "Sınav Oluştur";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">
+            <span class="text-muted fw-light">Eğitmen Paneli /</span> Sınav Oluştur
+        </h4>
+        <div>
+            <button type="button" class="btn btn-outline-primary" id="saveAsDraftBtn">
+                <i class="bx bx-save me-1"></i> Taslak Olarak Kaydet
+            </button>
+            <button type="button" class="btn btn-primary ms-2" id="saveExamBtn">
+                <i class="bx bx-check me-1"></i> Sınavı Kaydet
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Panel: Sınav Bilgileri ve Seçili Sorular -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <h5 class="card-header">Sınav Bilgileri</h5>
+                <div class="card-body">
+                    <form id="examInfoForm">
+                        <div class="mb-3">
+                            <label for="Title" class="form-label">Sınav Başlığı <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="Title" name="title" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="Description" class="form-label">Sınav Açıklaması</label>
+                            <textarea class="form-control" id="Description" name="description" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="CourseId" class="form-label">Ders <span class="text-danger">*</span></label>
+                            <select class="form-select" id="CourseId" name="courseId" required>
+                                <option value="">Ders Seçiniz</option>
+                                @foreach (var course in ViewBag.Courses)
+                                {
+                                    <option value="@course.Id">@course.Name</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="ExamDuration" class="form-label">Sınav Süresi (Dakika)</label>
+                            <input type="number" class="form-control" id="ExamDuration" name="examDuration" min="1" max="480" value="60">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="PassingScore" class="form-label">Geçme Notu</label>
+                            <input type="number" class="form-control" id="PassingScore" name="passingScore" min="0" max="100" value="60">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Sınav Ayarları</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="RandomizeQuestions" name="randomizeQuestions" checked>
+                                <label class="form-check-label" for="RandomizeQuestions">Soruları Karıştır</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="ShowResults" name="showResults" checked>
+                                <label class="form-check-label" for="ShowResults">Sonuçları Göster</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="AllowReview" name="allowReview" checked>
+                                <label class="form-check-label" for="AllowReview">Gözden Geçirmeye İzin Ver</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Seçili Sorular -->
+            <div class="card">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span>Seçili Sorular</span>
+                    <span class="badge bg-primary" id="selectedQuestionsCount">0</span>
+                </h5>
+                <div class="card-body">
+                    <div id="selectedQuestionsList">
+                        <!-- Seçili sorular buraya dinamik olarak eklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Panel: Soru Seçim Yöntemleri -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <h5 class="card-header">Soru Seçim Yöntemi</h5>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-book-open mb-3" style="font-size: 2rem;"></i>
+                                    <h5 class="card-title">Ders ve Konu Seçimi</h5>
+                                    <p class="card-text">Ders ve konu seçerek ilgili soruları görüntüleyin ve manuel olarak seçin.</p>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#courseTopicModal">
+                                        Başla
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-list-ul mb-3" style="font-size: 2rem;"></i>
+                                    <h5 class="card-title">Ders, Konu ve Alt Konu Seçimi</h5>
+                                    <p class="card-text">Ders, konu ve alt konu seçerek daha spesifik soruları görüntüleyin.</p>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#courseTopicSubtopicModal">
+                                        Başla
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-shuffle mb-3" style="font-size: 2rem;"></i>
+                                    <h5 class="card-title">Rastgele Soru Seçimi</h5>
+                                    <p class="card-text">Ders ve konuları seçerek rastgele soru seçimi yapın.</p>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#randomQuestionModal">
+                                        Başla
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Soru Listesi -->
+            <div class="card" id="questionsCard">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span>Soru Listesi</span>
+                    <div class="d-flex gap-2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="selectAll">
+                            <label class="form-check-label" for="selectAll">Tümünü Seç</label>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="addSelectedBtn">
+                            <i class="bx bx-plus me-1"></i> Seçilenleri Ekle
+                        </button>
+                    </div>
+                </h5>
+                <div class="card-body">
+                    <div class="table-responsive text-nowrap">
+                        <table class="table table-striped border">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAllTable">
+                                        </div>
+                                    </th>
+                                    <th>Soru</th>
+                                    <th>Alt Konu</th>
+                                    <th>Zorluk</th>
+                                    <th style="width: 100px;">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questionsTableBody">
+                                <!-- Sorular buraya dinamik olarak eklenecek -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ders ve Konu Seçim Modal -->
+<div class="modal fade" id="courseTopicModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ders ve Konu Seçimi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="courseTopicForm">
+                    <div class="mb-3">
+                        <label for="modalCourseId" class="form-label">Ders</label>
+                        <select class="form-select" id="modalCourseId" required>
+                            <option value="">Ders Seçiniz</option>
+                            @foreach (var course in ViewBag.Courses)
+                            {
+                                <option value="@course.Id">@course.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalTopicId" class="form-label">Konu</label>
+                        <select class="form-select" id="modalTopicId" required>
+                            <option value="">Konu Seçiniz</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="loadCourseTopicQuestions">Soruları Getir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ders, Konu ve Alt Konu Seçim Modal -->
+<div class="modal fade" id="courseTopicSubtopicModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ders, Konu ve Alt Konu Seçimi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="courseTopicSubtopicForm">
+                    <div class="mb-3">
+                        <label for="modalCourseId2" class="form-label">Ders</label>
+                        <select class="form-select" id="modalCourseId2" required>
+                            <option value="">Ders Seçiniz</option>
+                            @foreach (var course in ViewBag.Courses)
+                            {
+                                <option value="@course.Id">@course.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalTopicId2" class="form-label">Konu</label>
+                        <select class="form-select" id="modalTopicId2" required>
+                            <option value="">Konu Seçiniz</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalSubtopicId" class="form-label">Alt Konu</label>
+                        <select class="form-select" id="modalSubtopicId" required>
+                            <option value="">Alt Konu Seçiniz</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="loadCourseTopicSubtopicQuestions">Soruları Getir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rastgele Soru Seçim Modal -->
+<div class="modal fade" id="randomQuestionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rastgele Soru Seçimi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="randomQuestionForm">
+                    <div class="mb-3">
+                        <label for="modalCourseId3" class="form-label">Ders</label>
+                        <select class="form-select" id="modalCourseId3" required>
+                            <option value="">Ders Seçiniz</option>
+                            @foreach (var course in ViewBag.Courses)
+                            {
+                                <option value="@course.Id">@course.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalTopics" class="form-label">Konular</label>
+                        <select class="form-select" id="modalTopics" multiple required>
+                            <option value="">Konu Seçiniz</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="questionCount" class="form-label">Soru Sayısı</label>
+                        <input type="number" class="form-control" id="questionCount" min="1" value="10" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="difficulty" class="form-label">Zorluk</label>
+                        <select class="form-select" id="difficulty">
+                            <option value="">Tümü</option>
+                            <option value="Kolay">Kolay</option>
+                            <option value="Orta">Orta</option>
+                            <option value="Zor">Zor</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="generateRandomQuestions">Soruları Oluştur</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Ders seçildiğinde konuları getir
+            $('#modalCourseId, #modalCourseId2, #modalCourseId3').change(function() {
+                const courseId = $(this).val();
+                const targetTopicSelect = $(this).attr('id') === 'modalCourseId3' ? '#modalTopics' : 
+                    $(this).attr('id') === 'modalCourseId2' ? '#modalTopicId2' : '#modalTopicId';
+                
+                if (courseId) {
+                    $.get('@Url.Action("GetTopics", "Exams")', { courseId: courseId }, function(topics) {
+                        const topicSelect = $(targetTopicSelect);
+                        topicSelect.empty();
+                        if (targetTopicSelect === '#modalTopics') {
+                            topics.forEach(function(topic) {
+                                topicSelect.append(`<option value="${topic.id}">${topic.name}</option>`);
+                            });
+                        } else {
+                            topicSelect.append('<option value="">Konu Seçiniz</option>');
+                            topics.forEach(function(topic) {
+                                topicSelect.append(`<option value="${topic.id}">${topic.name}</option>`);
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Konu seçildiğinde alt konuları getir
+            $('#modalTopicId2').change(function() {
+                const topicId = $(this).val();
+                if (topicId) {
+                    $.get('@Url.Action("GetSubtopics", "Exams")', { topicId: topicId }, function(subtopics) {
+                        const subtopicSelect = $('#modalSubtopicId');
+                        subtopicSelect.empty().append('<option value="">Alt Konu Seçiniz</option>');
+                        subtopics.forEach(function(subtopic) {
+                            subtopicSelect.append(`<option value="${subtopic.id}">${subtopic.name}</option>`);
+                        });
+                    });
+                }
+            });
+
+            // Ders ve Konu seçiminden soruları getir
+            $('#loadCourseTopicQuestions').click(function() {
+                const courseId = $('#modalCourseId').val();
+                const topicId = $('#modalTopicId').val();
+                
+                if (!courseId || !topicId) {
+                    Swal.fire({
+                        title: 'Uyarı!',
+                        text: 'Lütfen ders ve konu seçiniz.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                $.get('@Url.Action("SearchQuestions", "Exams")', {
+                    courseId: courseId,
+                    topicId: topicId
+                }, function(response) {
+                    if (response.questions && response.questions.length > 0) {
+                        displayQuestions(response.questions);
+                        $('#courseTopicModal').modal('hide');
+                    } else {
+                        Swal.fire({
+                            title: 'Bilgi',
+                            text: 'Seçilen kriterlere uygun soru bulunamadı.',
+                            icon: 'info',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                });
+            });
+
+            // Ders, Konu ve Alt Konu seçiminden soruları getir
+            $('#loadCourseTopicSubtopicQuestions').click(function() {
+                const courseId = $('#modalCourseId2').val();
+                const topicId = $('#modalTopicId2').val();
+                const subtopicId = $('#modalSubtopicId').val();
+                
+                if (!courseId || !topicId || !subtopicId) {
+                    Swal.fire({
+                        title: 'Uyarı!',
+                        text: 'Lütfen ders, konu ve alt konu seçiniz.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                $.get('@Url.Action("SearchQuestions", "Exams")', {
+                    courseId: courseId,
+                    topicId: topicId,
+                    subtopicId: subtopicId
+                }, function(response) {
+                    if (response.questions && response.questions.length > 0) {
+                        displayQuestions(response.questions);
+                        $('#courseTopicSubtopicModal').modal('hide');
+                    } else {
+                        Swal.fire({
+                            title: 'Bilgi',
+                            text: 'Seçilen kriterlere uygun soru bulunamadı.',
+                            icon: 'info',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                });
+            });
+
+            // Rastgele soru oluştur
+            $('#generateRandomQuestions').click(function() {
+                const courseId = $('#modalCourseId3').val();
+                const topicIds = $('#modalTopics').val();
+                const questionCount = $('#questionCount').val();
+                const difficulty = $('#difficulty').val();
+                
+                if (!courseId || !topicIds || !questionCount) {
+                    Swal.fire({
+                        title: 'Uyarı!',
+                        text: 'Lütfen gerekli alanları doldurunuz.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                $.post('@Url.Action("GenerateExam", "Exams")', {
+                    courseId: courseId,
+                    topicIds: topicIds,
+                    questionCount: questionCount,
+                    difficulty: difficulty,
+                    selectionType: 'random'
+                }, function(response) {
+                    if (response.success) {
+                        displayQuestions(response.questions);
+                        $('#randomQuestionModal').modal('hide');
+                    } else {
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: response.error || 'Sorular oluşturulurken bir hata oluştu.',
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                });
+            });
+
+            // Soruları tabloda göster
+            function displayQuestions(questions) {
+                const tbody = $('#questionsTableBody');
+                tbody.empty();
+                
+                questions.forEach(function(question) {
+                    const row = `
+                        <tr>
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input question-checkbox" type="checkbox" 
+                                           data-question-id="${question.id}">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>${question.questionText.length > 100 
+                                        ? question.questionText.substring(0, 100) + '...' 
+                                        : question.questionText}</div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary ms-2" 
+                                            onclick="showQuestionDetail(${question.id})">
+                                        Detay
+                                    </button>
+                                </div>
+                            </td>
+                            <td>${question.subtopic.name}</td>
+                            <td>
+                                <span class="badge bg-${question.difficulty === 'Kolay' ? 'success' : 
+                                    question.difficulty === 'Orta' ? 'warning' : 'danger'}">
+                                    ${question.difficulty}
+                                </span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-primary add-question" 
+                                        data-question-id="${question.id}">
+                                    <i class="bx bx-plus"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+            }
+
+            // Tümünü seç
+            $('#selectAll, #selectAllTable').change(function() {
+                $('.question-checkbox').prop('checked', $(this).prop('checked'));
+            });
+
+            // Soru ekleme
+            $(document).on('click', '.add-question', function() {
+                const questionId = $(this).data('question-id');
+                addQuestionToSelection(questionId);
+            });
+
+            // Seçilenleri ekle
+            $('#addSelectedBtn').click(function() {
+                const selectedQuestions = $('.question-checkbox:checked').map(function() {
+                    return $(this).data('question-id');
+                }).get();
+                
+                selectedQuestions.forEach(function(questionId) {
+                    addQuestionToSelection(questionId);
+                });
+            });
+
+            // Soru seçimine ekle
+            function addQuestionToSelection(questionId) {
+                $.post('@Url.Action("AddQuestionToSelection", "Exams")', { questionId: questionId }, function(response) {
+                    if (response.success) {
+                        updateSelectedQuestions();
+                    }
+                });
+            }
+
+            // Seçili soruları güncelle
+            function updateSelectedQuestions() {
+                $.get('@Url.Action("ViewSelectedQuestions", "Exams")', function(response) {
+                    $('#selectedQuestionsList').html(response);
+                    $('#selectedQuestionsCount').text($('#selectedQuestionsList tr').length);
+                });
+            }
+
+            // Sınav kaydet
+            $('#saveExamBtn').click(function() {
+                const form = $('#examInfoForm');
+                if (!form[0].checkValidity()) {
+                    form[0].reportValidity();
+                    return;
+                }
+
+                // Seçili soru kontrolü
+                const selectedQuestions = $('#selectedQuestionsList tr').length;
+                if (selectedQuestions === 0) {
+                    Swal.fire({
+                        title: 'Uyarı!',
+                        text: 'Lütfen en az bir soru seçin.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+                
+                const formData = form.serialize();
+                
+                $.ajax({
+                    url: '@Url.Action("SaveSelectedQuestionsExam", "Exams")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Başarılı!',
+                                text: 'Sınav başarıyla kaydedildi.',
+                                icon: 'success',
+                                confirmButtonText: 'Tamam'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '@Url.Action("MyExams", "Exams")';
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Hata!',
+                                text: response.error || 'Sınav kaydedilirken bir hata oluştu.',
+                                icon: 'error',
+                                confirmButtonText: 'Tamam'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: 'Sınav kaydedilirken bir hata oluştu: ' + error,
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                });
+            });
+
+            // Taslak olarak kaydet
+            $('#saveAsDraftBtn').click(function() {
+                const form = $('#examInfoForm');
+                if (!form[0].checkValidity()) {
+                    form[0].reportValidity();
+                    return;
+                }
+
+                // Seçili soru kontrolü
+                const selectedQuestions = $('#selectedQuestionsList tr').length;
+                if (selectedQuestions === 0) {
+                    Swal.fire({
+                        title: 'Uyarı!',
+                        text: 'Lütfen en az bir soru seçin.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                const formData = form.serialize();
+                formData += '&isDraft=true';
+                
+                $.post('@Url.Action("SaveSelectedQuestionsExam", "Exams")', formData, function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Başarılı!',
+                            text: 'Sınav taslak olarak kaydedildi.',
+                            icon: 'success',
+                            confirmButtonText: 'Tamam'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '@Url.Action("MyExams", "Exams")';
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: response.error || 'Sınav kaydedilirken bir hata oluştu.',
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                }).fail(function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Hata!',
+                        text: 'Sınav kaydedilirken bir hata oluştu: ' + error,
+                        icon: 'error',
+                        confirmButtonText: 'Tamam'
+                    });
+                });
+            });
+
+            // İlk yükleme
+            updateSelectedQuestions();
+        });
+    </script>
+} 

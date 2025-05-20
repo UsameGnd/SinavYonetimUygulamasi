@@ -1,0 +1,60 @@
+@model SinavYonetimUygulamasi.Models.Exam
+@{
+    ViewData["Title"] = "Sınav Düzenle";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("MyExams", "Exams")">Sınavlarım</a> /</span> Sınav Düzenle
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <h5 class="card-header">Sınav Düzenle</h5>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <input type="hidden" asp-for="CreatedBy" />
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Title" class="form-label">Sınav Başlığı</label>
+                                <input asp-for="Title" class="form-control" required />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Description" class="form-label">Sınav Açıklaması (Opsiyonel)</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="CourseId" class="form-label">Ders</label>
+                                <select asp-for="CourseId" class="form-select" required>
+                                    <option value="">Ders Seçin</option>
+                                    @foreach (var course in ViewBag.Courses)
+                                    {
+                                        <option value="@course.Id">@course.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CourseId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                            <a href="@Url.Action("MyExams", "Exams")" class="btn btn-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

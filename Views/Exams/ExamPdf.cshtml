@@ -1,0 +1,82 @@
+@model SinavYonetimUygulamasi.Models.Exam
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.Title</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        .exam-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        .question {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .options {
+            margin-left: 20px;
+        }
+        .option {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="exam-header">
+        <h1>@Model.Title</h1>
+        <p>Ders: @Model.Course?.Name</p>
+        <p>Soru Sayısı: @(Model.Questions?.Count ?? 0)</p>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p>Açıklama: @Model.Description</p>
+        }
+    </div>
+
+    @if (Model.Questions != null)
+    {
+        foreach (var examQuestion in Model.Questions.OrderBy(eq => eq.QuestionOrder))
+        {
+            var question = examQuestion.Question;
+            if (question != null)
+            {
+                <div class="question">
+                    <div class="question-text">
+                        <span>@examQuestion.QuestionOrder.</span>
+                        @question.QuestionText
+                    </div>
+                    @if (!string.IsNullOrEmpty(question.ImagePath))
+                    {
+                        <img src="@question.ImagePath" alt="Soru Görseli" style="max-width: 100%; max-height: 300px; margin: 10px 0;" />
+                    }
+                    @if (question.Options != null)
+                    {
+                        <div class="options">
+                            @foreach (var option in question.Options.OrderBy(o => o.OptionOrder))
+                            {
+                                <div class="option">
+                                    @(char.ConvertFromUtf32(65 + option.OptionOrder)). @option.OptionText
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+    }
+</body>
+</html> 

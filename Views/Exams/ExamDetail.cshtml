@@ -1,0 +1,122 @@
+@model SinavYonetimUygulamasi.Models.Exam
+@{
+    ViewData["Title"] = "Sınav Detayı";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("MyExams", "Exams")">Sınavlarım</a> /</span> Sınav Detayı
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span>@Model.Title</span>
+                    <div>
+                        <a href="@Url.Action("DownloadExam", "Exams", new { id = Model.Id })" class="btn btn-primary">
+                            <i class="bx bx-download me-1"></i> PDF İndir
+                        </a>
+                        <a href="@Url.Action("Edit", "Exams", new { id = Model.Id })" class="btn btn-secondary">
+                            <i class="bx bx-edit me-1"></i> Düzenle
+                        </a>
+                    </div>
+                </h5>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong>Ders:</strong> @Model.Course.Name
+                            </div>
+                            <div class="mb-3">
+                                <strong>Soru Sayısı:</strong> @Model.Questions.Count
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong>Oluşturma Tarihi:</strong> @Model.CreatedAt?.ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <div class="mb-3">
+                                    <strong>Açıklama:</strong> @Model.Description
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3">Sınav Soruları</h5>
+
+                    @foreach (var examQuestion in Model.Questions.OrderBy(eq => eq.QuestionOrder))
+                    {
+                        var question = examQuestion.Question;
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Soru @examQuestion.QuestionOrder: @question.SubTopic.Topic.Name / @question.SubTopic.Name</span>
+                                <span class="badge bg-@(question.DifficultyLevel == DifficultyLevel.Easy ? "success" : question.DifficultyLevel == DifficultyLevel.Medium ? "warning" : "danger")">
+                                    @question.DifficultyLevel
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <p>@question.QuestionText</p>
+                                    @if (!string.IsNullOrEmpty(question.ImagePath))
+                                    {
+                                        <img src="@question.ImagePath" alt="Soru Görseli" class="img-fluid mb-3" style="max-height: 300px;" />
+                                    }
+                                </div>
+
+                                @switch (question.QuestionType)
+                                {
+                                    case QuestionType.MultipleChoice:
+                                        <div class="mb-3">
+                                            <strong>Seçenekler:</strong>
+                                            <div class="list-group mt-2">
+                                                @foreach (var option in question.Options.OrderBy(o => o.OptionOrder))
+                                                {
+                                                    <div class="list-group-item @(option.IsCorrect ? "list-group-item-success" : "")">
+                                                        @(char.ConvertFromUtf32(65 + option.OptionOrder)). @option.OptionText
+                                                        @if (option.IsCorrect)
+                                                        {
+                                                            <span class="badge bg-success float-end">Doğru Cevap</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case QuestionType.TrueFalse:
+                                        <div class="mb-3">
+                                            <strong>Cevap:</strong>
+                                            @{
+                                                var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                                                var correctAnswer = correctOption?.OptionText == "Doğru";
+                                            }
+                                            <span class="badge bg-success ms-2">@(correctAnswer ? "Doğru" : "Yanlış")</span>
+                                        </div>
+                                        break;
+
+                                    case QuestionType.ShortAnswer:
+                                        <div class="mb-3">
+                                            <strong>Doğru Cevap:</strong>
+                                            <span class="badge bg-success ms-2">@question.Options.FirstOrDefault(o => o.IsCorrect)?.OptionText</span>
+                                        </div>
+                                        break;
+
+                                    case QuestionType.LongAnswer:
+                                        <div class="mb-3">
+                                            <span class="text-muted">Klasik soru - Öğrenci yazılı cevap verecek</span>
+                                        </div>
+                                        break;
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

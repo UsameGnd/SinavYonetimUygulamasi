@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Giriş Yap";
+    Layout = "_Layout";
+}
+
+<div class="container-xxl">
+    <div class="authentication-wrapper authentication-basic container-p-y">
+        <div class="authentication-inner">
+            <!-- Login Form -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="mb-4 text-center">Sınav Yönetim Uygulaması</h4>
+                    <h5 class="mb-3 text-center">Giriş Yap</h5>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @ViewBag.Error
+                        </div>
+                    }
+
+                    <form method="post" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Kullanıcı Adı</label>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Kullanıcı adınızı girin" autofocus />
+                        </div>
+                        <div class="mb-3 form-password-toggle">
+                            <label for="password" class="form-label">Şifre</label>
+                            <div class="input-group input-group-merge">
+                                <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <button class="btn btn-primary d-grid w-100" type="submit">Giriş Yap</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- /Login Form -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Add login page specific scripts here if needed
+        });
+    </script>
+} 

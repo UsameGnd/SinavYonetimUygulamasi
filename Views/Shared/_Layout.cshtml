@@ -48,8 +48,10 @@
     <link rel="stylesheet" href="~/ThemeData/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
     <!-- Page CSS -->
+    @RenderSection("Styles", required: false)
     <!-- Helpers -->
     <script src="~/ThemeData/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
@@ -121,38 +123,89 @@
                 <ul class="menu-inner py-1">
                     <!-- Dashboard -->
                     <li class="menu-item">
-                        <a href="index.html" class="menu-link">
+                        <a href="@Url.Action("Index", "Teacher")" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                            <div data-i18n="Analytics">Dashboard</div>
+                            <div data-i18n="Analytics">Ana Sayfa</div>
                         </a>
                     </li>
 
-                    <!-- MISC -->
-                    <li class="menu-header small text-uppercase"><span class="menu-header-text">Misc</span></li>
+                    <!-- Teacher Features -->
+                    <li class="menu-header small text-uppercase"><span class="menu-header-text">Eğitmen Paneli</span></li>
                     <li class="menu-item">
-                        <a href="https://github.com/themeselection/sneat-html-admin-template-free/issues"
-                           target="_blank"
+                        <a href="@Url.Action("QuestionBank", "Teacher")"
                            class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-support"></i>
+                            <i class="menu-icon tf-icons bx bx-question-mark"></i>
                             <div data-i18n="Soru Havuzu">Soru Havuzu</div>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href=""
-                           target="_blank"
+                        <a href="@Url.Action("CreateExam", "Exams")"
                            class="menu-link">
                             <i class="menu-icon tf-icons bx bx-file"></i>
                             <div data-i18n="Sınav Oluştur">Sınav Oluştur</div>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="https://themeselection.com/demo/sneat-bootstrap-html-admin-template/documentation/"
-                           target="_blank"
-                           class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-file"></i>
-                            <div data-i18n="Derslerim">Derslerim</div>
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-book"></i>
+                            <div data-i18n="Ders Yönetimi">Ders Yönetimi</div>
                         </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="@Url.Action("CourseList", "Course")" class="menu-link">
+                                    <div data-i18n="Ders Listesi">Ders Listesi</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="@Url.Action("Create", "Course")" class="menu-link">
+                                    <div data-i18n="Ders Ekle">Ders Ekle</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="@Url.Action("SelectCourseForTopic", "Course")" class="menu-link">
+                                    <div data-i18n="Konu Ekle">Konu Ekle</div>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
+
+                    <!-- Eğitmen Menüsü -->
+                    @if (User.IsInRole("Egitmen") || User.IsInRole("Admin"))
+                    {
+                        <li class="menu-item">
+                            <a href="javascript:void(0)" class="menu-link menu-toggle">
+                                <i class="menu-icon tf-icons bx bx-book"></i>
+                                <div>Eğitmen Paneli</div>
+                            </a>
+                            <ul class="menu-sub">
+                                <li class="menu-item">
+                                    <a href="@Url.Action("Index", "Teacher")" class="menu-link">
+                                        <div>Kontrol Paneli</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="@Url.Action("QuestionBank", "Teacher")" class="menu-link">
+                                        <div>Soru Havuzu</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="@Url.Action("CreateExam", "Exams")" class="menu-link">
+                                        <div>Sınav Oluştur</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="@Url.Action("MyExams", "Exams")" class="menu-link">
+                                        <div>Sınavlarım</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="@Url.Action("CourseList", "Course")" class="menu-link">
+                                        <div>Derslerim</div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
                 </ul>
             </aside>
             <!-- / Menu -->
@@ -209,8 +262,16 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <span class="fw-semibold d-block">John Doe</span>
-                                                    <small class="text-muted">Admin</small>
+                                                    @if (User.Identity.IsAuthenticated)
+                                                    {
+                                                        <span class="fw-semibold d-block">@User.Identity.Name</span>
+                                                        <small class="text-muted">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="fw-semibold d-block">Misafir</span>
+                                                        <small class="text-muted">Giriş Yapılmadı</small>
+                                                    }
                                                 </div>
                                             </div>
                                         </a>
@@ -221,32 +282,33 @@
                                     <li>
                                         <a class="dropdown-item" href="#">
                                             <i class="bx bx-user me-2"></i>
-                                            <span class="align-middle">My Profile</span>
+                                            <span class="align-middle">Profilim</span>
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="#">
                                             <i class="bx bx-cog me-2"></i>
-                                            <span class="align-middle">Settings</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#">
-                                            <span class="d-flex align-items-center align-middle">
-                                                <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
-                                                <span class="flex-grow-1 align-middle">Billing</span>
-                                                <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>
-                                            </span>
+                                            <span class="align-middle">Ayarlar</span>
                                         </a>
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="auth-login-basic.html">
-                                            <i class="bx bx-power-off me-2"></i>
-                                            <span class="align-middle">Log Out</span>
-                                        </a>
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <a class="dropdown-item" href="@Url.Action("Logout", "Account")">
+                                                <i class="bx bx-power-off me-2"></i>
+                                                <span class="align-middle">Çıkış Yap</span>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a class="dropdown-item" href="@Url.Action("Login", "Account")">
+                                                <i class="bx bx-log-in me-2"></i>
+                                                <span class="align-middle">Giriş Yap</span>
+                                            </a>
+                                        }
                                     </li>
                                 </ul>
                             </li>
@@ -326,5 +388,7 @@
     <!-- Page JS -->
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
+    
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

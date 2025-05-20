@@ -1,0 +1,213 @@
+@model List<SinavYonetimUygulamasi.Models.QuestionBank>
+@{
+    ViewData["Title"] = "Soru Seçimi";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("CreateExam", "Exams")">Sınav Oluştur</a> /</span> Soru Seçimi
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span>Soru Seçimi</span>
+                    <div>
+                        <a href="@Url.Action("ViewSelectedQuestions", "Exams")" class="btn btn-primary me-2">
+                            <i class="bx bx-list-check me-1"></i> Seçili Soruları Görüntüle
+                            <span class="badge bg-white text-primary ms-1" id="selectedQuestionsCount">0</span>
+                        </a>
+                        <form asp-action="ClearSelectedQuestions" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bx bx-trash me-1"></i> Seçimleri Temizle
+                            </button>
+                        </form>
+                    </div>
+                </h5>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading fw-bold mb-1">Sınav Bilgileri</h6>
+                        <p class="mb-0">Ders: <strong>@Model.FirstOrDefault()?.SubTopic.Topic.Course.Name</strong></p>
+                        <p class="mb-0">Konu: <strong>@Model.FirstOrDefault()?.SubTopic.Topic.Name</strong></p>
+                        @if (Model.FirstOrDefault()?.SubTopic != null)
+                        {
+                            <p class="mb-0">Alt Konu: <strong>@Model.FirstOrDefault()?.SubTopic.Name</strong></p>
+                        }
+                    </div>
+
+                    <div class="table-responsive text-nowrap mb-4">
+                        <table class="table table-striped border">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                        </div>
+                                    </th>
+                                    <th>Soru</th>
+                                    <th>Alt Konu</th>
+                                    <th>Zorluk</th>
+                                    <th style="width: 100px;">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Count; i++)
+                                {
+                                    var question = Model[i];
+                                    var isSelected = ViewBag.SelectedQuestions?.Contains(question.Id) ?? false;
+                                    <tr>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input question-checkbox" type="checkbox" 
+                                                       data-question-id="@question.Id" 
+                                                       @(isSelected ? "checked" : "")>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    @(question.QuestionText.Length > 100 
+                                                        ? question.QuestionText.Substring(0, 100) + "..." 
+                                                        : question.QuestionText)
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary ms-2" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#questionModal@(i)">
+                                                    Detay
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td>@question.SubTopic.Name</td>
+                                        <td>
+                                            <span class="badge bg-@(question.DifficultyLevel == DifficultyLevel.Easy ? "success" : question.DifficultyLevel == DifficultyLevel.Medium ? "warning" : "danger")">
+                                                @question.DifficultyLevel
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm @(isSelected ? "btn-danger" : "btn-success") toggle-question" 
+                                                    data-question-id="@question.Id">
+                                                <i class="bx @(isSelected ? "bx-minus" : "bx-plus")"></i>
+                                                @(isSelected ? "Çıkar" : "Ekle")
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Question Detail Modal -->
+                                    <div class="modal fade" id="questionModal@(i)" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Soru Detayı</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <strong>Soru:</strong>
+                                                        <p>@question.QuestionText</p>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <strong>Seçenekler:</strong>
+                                                        <ul class="list-unstyled">
+                                                            @foreach (var option in question.Options)
+                                                            {
+                                                                <li class="@(option.IsCorrect ? "text-success" : "")">
+                                                                    @option.OptionText
+                                                                    @if (option.IsCorrect)
+                                                                    {
+                                                                        <i class="bx bx-check text-success"></i>
+                                                                    }
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <strong>Zorluk:</strong>
+                                                        <span class="badge bg-@(question.DifficultyLevel == DifficultyLevel.Easy ? "success" : question.DifficultyLevel == DifficultyLevel.Medium ? "warning" : "danger")">
+                                                            @question.DifficultyLevel
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Select all checkbox
+            $('#selectAll').change(function() {
+                var isChecked = $(this).prop('checked');
+                $('.question-checkbox').prop('checked', isChecked);
+                $('.question-checkbox').each(function() {
+                    var questionId = $(this).data('question-id');
+                    toggleQuestionSelection(questionId, isChecked);
+                });
+            });
+
+            // Individual checkboxes
+            $('.question-checkbox').change(function() {
+                var questionId = $(this).data('question-id');
+                var isChecked = $(this).prop('checked');
+                toggleQuestionSelection(questionId, isChecked);
+                
+                // Update select all checkbox
+                var allChecked = $('.question-checkbox:checked').length === $('.question-checkbox').length;
+                $('#selectAll').prop('checked', allChecked);
+            });
+
+            // Toggle question buttons
+            $('.toggle-question').click(function() {
+                var button = $(this);
+                var questionId = button.data('question-id');
+                var isSelected = button.hasClass('btn-danger');
+                
+                toggleQuestionSelection(questionId, !isSelected);
+            });
+
+            function toggleQuestionSelection(questionId, isSelected) {
+                var button = $(`.toggle-question[data-question-id="${questionId}"]`);
+                var checkbox = $(`.question-checkbox[data-question-id="${questionId}"]`);
+                
+                $.ajax({
+                    url: isSelected ? '@Url.Action("AddQuestionToSelection", "Exams")' : '@Url.Action("RemoveQuestionFromSelection", "Exams")',
+                    type: 'POST',
+                    data: { questionId: questionId },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update button
+                            button.removeClass(isSelected ? 'btn-success' : 'btn-danger')
+                                  .addClass(isSelected ? 'btn-danger' : 'btn-success')
+                                  .html(`<i class="bx bx-${isSelected ? 'minus' : 'plus'}"></i>${isSelected ? 'Çıkar' : 'Ekle'}`);
+                            
+                            // Update checkbox
+                            checkbox.prop('checked', isSelected);
+                            
+                            // Update counter
+                            $('#selectedQuestionsCount').text(response.count);
+                        }
+                    }
+                });
+            }
+
+            // Initialize selected questions count
+            $.ajax({
+                url: '@Url.Action("ViewSelectedQuestions", "Exams")',
+                type: 'GET',
+                success: function(response) {
+                    var count = $(response).find('tbody tr').length;
+                    $('#selectedQuestionsCount').text(count);
+                }
+            });
+        });
+    </script>
+} 

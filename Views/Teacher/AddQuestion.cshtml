@@ -1,0 +1,252 @@
+@model SinavYonetimUygulamasi.Models.ViewModels.QuestionViewModel
+@{
+    ViewData["Title"] = "Yeni Soru Ekle";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli /</span> Yeni Soru Ekle
+    </h4>
+
+    <partial name="_AlertsPartial" />
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Soru Tipi Seçin</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <a href="@Url.Action("AddQuestionByType", "Teacher", new { questionType = QuestionType.MultipleChoice })" 
+                       class="card h-100 @(ViewBag.SelectedQuestionType == QuestionType.MultipleChoice ? "border-primary" : "")">
+                        <div class="card-body text-center">
+                            <i class="bx bx-list-check fs-1 mb-3"></i>
+                            <h5 class="card-title">Çoktan Seçmeli</h5>
+                            <p class="card-text">Birden fazla seçenek arasından doğru cevabı seçin</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="@Url.Action("AddQuestionByType", "Teacher", new { questionType = QuestionType.TrueFalse })" 
+                       class="card h-100 @(ViewBag.SelectedQuestionType == QuestionType.TrueFalse ? "border-primary" : "")">
+                        <div class="card-body text-center">
+                            <i class="bx bx-check-circle fs-1 mb-3"></i>
+                            <h5 class="card-title">Doğru/Yanlış</h5>
+                            <p class="card-text">Doğru veya yanlış olarak cevaplanacak sorular</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="@Url.Action("AddQuestionByType", "Teacher", new { questionType = QuestionType.ShortAnswer })" 
+                       class="card h-100 @(ViewBag.SelectedQuestionType == QuestionType.ShortAnswer ? "border-primary" : "")">
+                        <div class="card-body text-center">
+                            <i class="bx bx-text fs-1 mb-3"></i>
+                            <h5 class="card-title">Boşluk Doldurma</h5>
+                            <p class="card-text">Eksik kelime veya ifadeyi tamamlayın</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="@Url.Action("AddQuestionByType", "Teacher", new { questionType = QuestionType.LongAnswer })" 
+                       class="card h-100 @(ViewBag.SelectedQuestionType == QuestionType.LongAnswer ? "border-primary" : "")">
+                        <div class="card-body text-center">
+                            <i class="bx bx-edit fs-1 mb-3"></i>
+                            <h5 class="card-title">Klasik</h5>
+                            <p class="card-text">Açık uçlu, detaylı cevap gerektiren sorular</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewBag.SelectedQuestionType != null)
+    {
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Soru Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="SaveQuestion" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="QuestionType" value="@ViewBag.SelectedQuestionType" />
+                    
+                    <div class="row">
+                        <!-- Ders Seçimi -->
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="CourseId" class="form-label">Ders</label>
+                            <select asp-for="CourseId" class="form-select" required>
+                                <option value="">Ders Seçin</option>
+                                @foreach (var course in ViewBag.Courses)
+                                {
+                                    <option value="@course.Id">@course.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger"></span>
+                        </div>
+
+                        <!-- Konu Seçimi -->
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="TopicId" class="form-label">Konu</label>
+                            <select asp-for="TopicId" class="form-select" required disabled>
+                                <option value="">Önce Ders Seçin</option>
+                            </select>
+                            <span asp-validation-for="TopicId" class="text-danger"></span>
+                        </div>
+
+                        <!-- Alt Konu Seçimi -->
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="SubtopicId" class="form-label">Alt Konu</label>
+                            <select asp-for="SubtopicId" class="form-select" required disabled>
+                                <option value="">Önce Konu Seçin</option>
+                            </select>
+                            <span asp-validation-for="SubtopicId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Soru Metni -->
+                    <div class="mb-3">
+                        <label asp-for="QuestionText" class="form-label">Soru Metni</label>
+                        <textarea asp-for="QuestionText" class="form-control" rows="3" required></textarea>
+                        <span asp-validation-for="QuestionText" class="text-danger"></span>
+                    </div>
+
+                    <!-- Görsel Yükleme -->
+                    <div class="mb-3">
+                        <label asp-for="QuestionImage" class="form-label">Soru Görseli (İsteğe Bağlı)</label>
+                        <input asp-for="QuestionImage" type="file" class="form-control" accept="image/*" />
+                        <span asp-validation-for="QuestionImage" class="text-danger"></span>
+                    </div>
+
+                    <!-- Zorluk Derecesi -->
+                    <div class="mb-3">
+                        <label asp-for="Difficulty" class="form-label">Zorluk Derecesi</label>
+                        <select asp-for="Difficulty" class="form-select" required>
+                            <option value="">Seçin</option>
+                            <option value="Kolay">Kolay</option>
+                            <option value="Orta">Orta</option>
+                            <option value="Zor">Zor</option>
+                        </select>
+                        <span asp-validation-for="Difficulty" class="text-danger"></span>
+                    </div>
+
+                    <!-- Soru Tipine Göre Özel Alanlar -->
+                    @switch (ViewBag.SelectedQuestionType)
+                    {
+                        case QuestionType.MultipleChoice:
+                            <div class="mb-3">
+                                <label class="form-label">Seçenekler</label>
+                                @for (int i = 0; i < Model.Options.Count; i++)
+                                {
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-text">
+                                            <input type="radio" name="CorrectOptionIndex" value="@i" required />
+                                        </div>
+                                        <input type="text" asp-for="Options[i].OptionText" class="form-control" placeholder="Seçenek @(i + 1)" required />
+                                    </div>
+                                }
+                            </div>
+                            break;
+
+                        case QuestionType.TrueFalse:
+                            <div class="mb-3">
+                                <label class="form-label">Doğru Cevap</label>
+                                <div class="form-check">
+                                    <input type="radio" asp-for="TrueFalseAnswer" value="true" class="form-check-input" required />
+                                    <label class="form-check-label">Doğru</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" asp-for="TrueFalseAnswer" value="false" class="form-check-input" required />
+                                    <label class="form-check-label">Yanlış</label>
+                                </div>
+                            </div>
+                            break;
+
+                        case QuestionType.ShortAnswer:
+                            <div class="mb-3">
+                                <label asp-for="FillInBlankAnswer" class="form-label">Doğru Cevap</label>
+                                <input asp-for="FillInBlankAnswer" class="form-control" required />
+                                <span asp-validation-for="FillInBlankAnswer" class="text-danger"></span>
+                            </div>
+                            break;
+                    }
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save me-1"></i> Soruyu Kaydet
+                        </button>
+                        <a href="@Url.Action("QuestionBank")" class="btn btn-secondary">
+                            <i class="bx bx-x me-1"></i> İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Ders değişiminde konuları getir
+            $('#CourseId').change(function() {
+                var courseId = $(this).val();
+                var $topicSelect = $('#TopicId');
+                var $subtopicSelect = $('#SubtopicId');
+                
+                // Reset topic and subtopic dropdowns
+                $topicSelect.html('<option value="">Konu Seçin</option>').prop('disabled', true);
+                $subtopicSelect.html('<option value="">Alt Konu Seçin</option>').prop('disabled', true);
+                
+                if (courseId) {
+                    // Enable topic dropdown
+                    $topicSelect.prop('disabled', false);
+                    
+                    // Load topics for selected course
+                    $.ajax({
+                        url: '@Url.Action("GetTopics", "Teacher")',
+                        type: 'GET',
+                        data: { courseId: courseId },
+                        success: function(data) {
+                            $.each(data, function(i, topic) {
+                                $topicSelect.append($('<option>', {
+                                    value: topic.id,
+                                    text: topic.name
+                                }));
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Konu değişiminde alt konuları getir
+            $('#TopicId').change(function() {
+                var topicId = $(this).val();
+                var $subtopicSelect = $('#SubtopicId');
+                
+                // Reset subtopic dropdown
+                $subtopicSelect.html('<option value="">Alt Konu Seçin</option>').prop('disabled', true);
+                
+                if (topicId) {
+                    // Enable subtopic dropdown
+                    $subtopicSelect.prop('disabled', false);
+                    
+                    // Load subtopics for selected topic
+                    $.ajax({
+                        url: '@Url.Action("GetSubtopics", "Teacher")',
+                        type: 'GET',
+                        data: { topicId: topicId },
+                        success: function(data) {
+                            $.each(data, function(i, subtopic) {
+                                $subtopicSelect.append($('<option>', {
+                                    value: subtopic.id,
+                                    text: subtopic.name
+                                }));
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+} 

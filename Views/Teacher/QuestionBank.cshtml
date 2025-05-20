@@ -1,0 +1,330 @@
+@model List<SinavYonetimUygulamasi.Models.QuestionBank>
+@{
+    ViewData["Title"] = "Soru Havuzu";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli /</span> Soru Havuzu
+    </h4>
+
+    <partial name="_AlertsPartial" />
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Soru Havuzu</h5>
+            <a href="@Url.Action("AddQuestion", "Teacher")" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Yeni Soru Ekle
+            </a>
+        </div>
+        <div class="card-body">
+            <!-- Filters -->
+            <div class="row mb-4">
+                <div class="col-md-2">
+                    <label for="coursesFilter" class="form-label">Ders</label>
+                    <select id="coursesFilter" class="form-select">
+                        <option value="">Tümü</option>
+                        @foreach (var course in ViewBag.Courses)
+                        {
+                            <option value="@course.Id">@course.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="topicsFilter" class="form-label">Konu</label>
+                    <select id="topicsFilter" class="form-select" disabled>
+                        <option value="">Önce Ders Seçin</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="subtopicsFilter" class="form-label">Alt Konu</label>
+                    <select id="subtopicsFilter" class="form-select" disabled>
+                        <option value="">Önce Konu Seçin</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="difficultyFilter" class="form-label">Zorluk</label>
+                    <select id="difficultyFilter" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="Kolay">Kolay</option>
+                        <option value="Orta">Orta</option>
+                        <option value="Zor">Zor</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="questionTypeFilter" class="form-label">Soru Tipi</label>
+                    <select id="questionTypeFilter" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="1">Çoktan Seçmeli</option>
+                        <option value="2">Doğru/Yanlış</option>
+                        <option value="3">Boşluk Doldurma</option>
+                        <option value="4">Klasik</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Questions List -->
+            <div class="row" id="questions-container">
+                @if (Model.Any())
+                {
+                    foreach (var question in Model)
+                    {
+                        <div class="col-12 mb-4 question-item"
+                             data-course="@question.SubTopic.Topic.CourseId"
+                             data-topic="@question.SubTopic.TopicId"
+                             data-subtopic="@question.SubTopicId"
+                             data-difficulty="@question.DifficultyLevel"
+                             data-question-type="@((int)question.QuestionType)">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-primary me-2">@question.SubTopic.Topic.Course.Name</span>
+                                        <span class="badge bg-info me-2">@question.SubTopic.Topic.Name</span>
+                                        <span class="badge bg-secondary me-2">@question.SubTopic.Name</span>
+                                        <span class="badge bg-@(question.DifficultyLevel == DifficultyLevel.Easy ? "success" : question.DifficultyLevel == DifficultyLevel.Medium ? "warning" : "danger")">
+                                            @question.DifficultyLevel
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-dark">
+                                            @(question.QuestionType == QuestionType.MultipleChoice ? "Çoktan Seçmeli" :
+                                              question.QuestionType == QuestionType.TrueFalse ? "Doğru/Yanlış" :
+                                              question.QuestionType == QuestionType.ShortAnswer ? "Boşluk Doldurma" : "Klasik")
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <p class="mb-2">@question.QuestionText</p>
+                                        @if (!string.IsNullOrEmpty(question.ImagePath))
+                                        {
+                                            <img src="@question.ImagePath" alt="Soru Görseli" class="img-fluid mb-3" style="max-height: 300px;" />
+                                        }
+                                    </div>
+
+                                    @switch (question.QuestionType)
+                                    {
+                                        case QuestionType.MultipleChoice:
+                                            if (question.Options.Any())
+                                            {
+                                                <div class="row">
+                                                    @foreach (var option in question.Options.OrderBy(o => o.OptionOrder))
+                                                    {
+                                                        <div class="col-md-6 mb-2">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" disabled @(option.IsCorrect ? "checked" : "") />
+                                                                <label class="form-check-label @(option.IsCorrect ? "text-success fw-bold" : "")">
+                                                                    @(char.ConvertFromUtf32(65 + option.OptionOrder))) @option.OptionText
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                            break;
+
+                                        case QuestionType.TrueFalse:
+                                            <div class="row">
+                                                @foreach (var option in question.Options.OrderBy(o => o.OptionOrder))
+                                                {
+                                                    <div class="col-md-6 mb-2">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" disabled @(option.IsCorrect ? "checked" : "") />
+                                                            <label class="form-check-label @(option.IsCorrect ? "text-success fw-bold" : "")">
+                                                                @option.OptionText
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            break;
+
+                                        case QuestionType.ShortAnswer:
+                                            <div class="alert alert-info">
+                                                Doğru Cevap: @question.Options.FirstOrDefault()?.OptionText
+                                            </div>
+                                            break;
+
+                                        case QuestionType.LongAnswer:
+                                            <div class="alert alert-info">
+                                                Klasik soru - Cevap anahtarı bulunmamaktadır.
+                                            </div>
+                                            break;
+                                    }
+                                </div>
+                                <div class="card-footer d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">@question.CreatedAt?.ToString("dd.MM.yyyy HH:mm")</small>
+                                    <div>
+                                        <button class="btn btn-sm btn-danger delete-question" data-id="@question.Id">
+                                            <i class="fas fa-trash"></i> Sil
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            Henüz soru eklenmemiş. Yeni soru eklemek için "Yeni Soru Ekle" butonuna tıklayabilirsiniz.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Ders değişiminde konuları getir
+            $('#coursesFilter').change(function() {
+                var courseId = $(this).val();
+                var $topicsFilter = $('#topicsFilter');
+                var $subtopicsFilter = $('#subtopicsFilter');
+                
+                // Reset topics and subtopics
+                $topicsFilter.html('<option value="">Konu Seçin</option>').prop('disabled', true);
+                $subtopicsFilter.html('<option value="">Alt Konu Seçin</option>').prop('disabled', true);
+                
+                if (courseId) {
+                    // Enable topics dropdown
+                    $topicsFilter.prop('disabled', false);
+                    
+                    // Load topics for selected course
+                    $.ajax({
+                        url: '@Url.Action("GetTopics", "Teacher")',
+                        type: 'GET',
+                        data: { courseId: courseId },
+                        success: function(data) {
+                            $.each(data, function(i, topic) {
+                                $topicsFilter.append($('<option>', {
+                                    value: topic.id,
+                                    text: topic.name
+                                }));
+                            });
+                        },
+                        error: function() {
+                            console.error('Konular yüklenirken hata oluştu.');
+                        }
+                    });
+                }
+            });
+            
+            // Konu değişiminde alt konuları getir
+            $('#topicsFilter').change(function() {
+                var topicId = $(this).val();
+                var $subtopicsFilter = $('#subtopicsFilter');
+                
+                // Reset subtopics
+                $subtopicsFilter.html('<option value="">Alt Konu Seçin</option>').prop('disabled', true);
+                
+                if (topicId) {
+                    // Enable subtopics dropdown
+                    $subtopicsFilter.prop('disabled', false);
+                    
+                    // Load subtopics for selected topic
+                    $.ajax({
+                        url: '@Url.Action("GetSubtopics", "Teacher")',
+                        type: 'GET',
+                        data: { topicId: topicId },
+                        success: function(data) {
+                            $.each(data, function(i, subtopic) {
+                                $subtopicsFilter.append($('<option>', {
+                                    value: subtopic.id,
+                                    text: subtopic.name
+                                }));
+                            });
+                        },
+                        error: function() {
+                            console.error('Alt konular yüklenirken hata oluştu.');
+                        }
+                    });
+                }
+            });
+            
+            // Filtreleme işlemi
+            function filterQuestions() {
+                var courseId = $('#coursesFilter').val();
+                var topicId = $('#topicsFilter').val();
+                var subtopicId = $('#subtopicsFilter').val();
+                var difficulty = $('#difficultyFilter').val();
+                var questionType = $('#questionTypeFilter').val();
+                
+                // Hide all questions first
+                $('.question-item').hide();
+                
+                // Filter questions based on selected criteria
+                var $filteredQuestions = $('.question-item');
+                
+                if (courseId) {
+                    $filteredQuestions = $filteredQuestions.filter('[data-course="' + courseId + '"]');
+                }
+                
+                if (topicId) {
+                    $filteredQuestions = $filteredQuestions.filter('[data-topic="' + topicId + '"]');
+                }
+                
+                if (subtopicId) {
+                    $filteredQuestions = $filteredQuestions.filter('[data-subtopic="' + subtopicId + '"]');
+                }
+                
+                if (difficulty) {
+                    $filteredQuestions = $filteredQuestions.filter('[data-difficulty="' + difficulty + '"]');
+                }
+                
+                if (questionType) {
+                    $filteredQuestions = $filteredQuestions.filter('[data-question-type="' + questionType + '"]');
+                }
+                
+                // Show filtered questions
+                $filteredQuestions.show();
+                
+                // Show message if no questions match the filters
+                if ($filteredQuestions.length === 0) {
+                    if ($('#no-questions-message').length === 0) {
+                        $('#questions-container').append(
+                            '<div class="col-12" id="no-questions-message">' +
+                            '<div class="alert alert-info">Seçilen kriterlere uygun soru bulunamadı.</div>' +
+                            '</div>'
+                        );
+                    }
+                } else {
+                    $('#no-questions-message').remove();
+                }
+            }
+            
+            // Filtre değişikliklerini dinle
+            $('#coursesFilter, #topicsFilter, #subtopicsFilter, #difficultyFilter, #questionTypeFilter').change(filterQuestions);
+
+            // Delete question
+            $(document).on('click', '.delete-question', function() {
+                const questionId = $(this).data('id');
+                const card = $(this).closest('.card');
+                
+                if (confirm('Bu soruyu silmek istediğinizden emin misiniz?')) {
+                    $.post('@Url.Action("DeleteQuestion")', { id: questionId })
+                        .done(function(response) {
+                            if (response.success) {
+                                card.fadeOut(300, function() {
+                                    $(this).remove();
+                                    if ($('.card').length === 0) {
+                                        $('#questions-container').html('<div class="alert alert-info">Henüz soru bulunmamaktadır.</div>');
+                                    }
+                                });
+                                toastr.success(response.message);
+                            } else {
+                                toastr.error(response.message);
+                            }
+                        })
+                        .fail(function() {
+                            toastr.error('Soru silinirken bir hata oluştu.');
+                        });
+                }
+            });
+        });
+    </script>
+} 

@@ -1,0 +1,86 @@
+@model List<SinavYonetimUygulamasi.Models.QuestionBank>
+@{
+    ViewData["Title"] = "Sınav Önizleme";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("CreateExam", "Exams")">Sınav Oluştur</a> /</span> Sınav Önizleme
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <h5 class="card-header">Sınav Önizleme</h5>
+                <div class="card-body">
+                    <form asp-action="SaveExam" method="post">
+                        <input type="hidden" name="courseId" value="@Model.FirstOrDefault()?.SubTopic.Topic.CourseId" />
+                        
+                        @foreach (var question in Model)
+                        {
+                            <input type="hidden" name="questionIds" value="@question.Id" />
+                        }
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="Title" class="form-label">Sınav Başlığı</label>
+                                <input type="text" class="form-control" id="Title" name="title" placeholder="Sınav başlığını giriniz" required>
+                            </div>
+                            
+                            <div class="col-md-12 mb-4">
+                                <label for="Description" class="form-label">Sınav Açıklaması (Opsiyonel)</label>
+                                <textarea class="form-control" id="Description" name="description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading fw-bold mb-1">Sınav Bilgileri</h6>
+                            <p class="mb-0">Ders: <strong>@Model.FirstOrDefault()?.SubTopic.Topic.Course.Name</strong></p>
+                            <p class="mb-0">Soru Sayısı: <strong>@Model.Count</strong></p>
+                        </div>
+                        
+                        <div class="table-responsive text-nowrap mb-4">
+                            <table class="table table-striped border">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Soru</th>
+                                        <th>Konu</th>
+                                        <th>Alt Konu</th>
+                                        <th>Zorluk</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.Count; i++)
+                                    {
+                                        var question = Model[i];
+                                        <tr>
+                                            <td>@(i + 1)</td>
+                                            <td>
+                                                @(question.QuestionText.Length > 100 
+                                                    ? question.QuestionText.Substring(0, 100) + "..." 
+                                                    : question.QuestionText)
+                                            </td>
+                                            <td>@question.SubTopic.Topic.Name</td>
+                                            <td>@question.SubTopic.Name</td>
+                                            <td>
+                                                <span class="badge bg-@(question.DifficultyLevel == DifficultyLevel.Easy ? "success" : question.DifficultyLevel == DifficultyLevel.Medium ? "warning" : "danger")">
+                                                    @question.DifficultyLevel
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Sınavı Kaydet</button>
+                            <a href="@Url.Action("CreateExam", "Exams")" class="btn btn-outline-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

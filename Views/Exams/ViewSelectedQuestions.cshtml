@@ -1,0 +1,188 @@
+@model List<SinavYonetimUygulamasi.Models.QuestionBank>
+@{
+    ViewData["Title"] = "Seçili Sorular";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Eğitmen Paneli / <a href="@Url.Action("CreateExam", "Exams")">Sınav Oluştur</a> /</span> Seçili Sorular
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span>Seçili Sorular</span>
+                    <div>
+                        <a href="@Url.Action("CreateExam", "Exams")" class="btn btn-outline-secondary me-2">
+                            <i class="bx bx-arrow-back me-1"></i> Geri Dön
+                        </a>
+                        <form asp-action="ClearSelectedQuestions" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bx bx-trash me-1"></i> Seçimleri Temizle
+                            </button>
+                        </form>
+                    </div>
+                </h5>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <form asp-action="SaveExam" method="post">
+                            <input type="hidden" name="courseId" value="@Model.FirstOrDefault()?.SubTopic.Topic.CourseId" />
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="Title" class="form-label">Sınav Başlığı</label>
+                                    <input type="text" class="form-control" id="Title" name="title" placeholder="Sınav başlığını giriniz" required>
+                                </div>
+                                
+                                <div class="col-md-12 mb-4">
+                                    <label for="Description" class="form-label">Sınav Açıklaması (Opsiyonel)</label>
+                                    <textarea class="form-control" id="Description" name="description" rows="3"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mb-4">
+                                <h6 class="alert-heading fw-bold mb-1">Sınav Bilgileri</h6>
+                                <p class="mb-0">Ders: <strong>@Model.FirstOrDefault()?.SubTopic.Topic.Course.Name</strong></p>
+                                <p class="mb-0">Toplam Soru: <strong>@Model.Count</strong></p>
+                            </div>
+
+                            <div class="table-responsive text-nowrap mb-4">
+                                <table class="table table-striped border">
+                                    <thead>
+                                        <tr>
+                                            <th>Soru</th>
+                                            <th>Alt Konu</th>
+                                            <th>Zorluk</th>
+                                            <th style="width: 100px;">İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.Count; i++)
+                                        {
+                                            var question = Model[i];
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            @(question.QuestionText.Length > 100 
+                                                                ? question.QuestionText.Substring(0, 100) + "..." 
+                                                                : question.QuestionText)
+                                                        </div>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary ms-2" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#questionModal@(i)">
+                                                            Detay
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td>@question.SubTopic.Name</td>
+                                                <td>
+                                                    <span class="badge bg-@(question.DifficultyLevel == DifficultyLevel.Easy ? "success" : question.DifficultyLevel == DifficultyLevel.Medium ? "warning" : "danger")">
+                                                        @question.DifficultyLevel
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-danger remove-question" 
+                                                            data-question-id="@question.Id">
+                                                        <i class="bx bx-minus"></i> Çıkar
+                                                    </button>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Question Detail Modal -->
+                                            <div class="modal fade" id="questionModal@(i)" tabindex="-1">
+                                                <div class="modal-dialog modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Soru Detayı</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <strong>Soru:</strong>
+                                                                <p>@question.QuestionText</p>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <strong>Seçenekler:</strong>
+                                                                <ul class="list-unstyled">
+                                                                    @foreach (var option in question.Options)
+                                                                    {
+                                                                        <li class="@(option.IsCorrect ? "text-success" : "")">
+                                                                            @option.OptionText
+                                                                            @if (option.IsCorrect)
+                                                                            {
+                                                                                <i class="bx bx-check text-success"></i>
+                                                                            }
+                                                                        </li>
+                                                                    }
+                                                                </ul>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <strong>Zorluk:</strong>
+                                                                <span class="badge bg-@(question.DifficultyLevel == DifficultyLevel.Easy ? "success" : question.DifficultyLevel == DifficultyLevel.Medium ? "warning" : "danger")">
+                                                                    @question.DifficultyLevel
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary me-2">Sınavı Kaydet</button>
+                                <a href="@Url.Action("CreateExam", "Exams")" class="btn btn-outline-secondary">İptal</a>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading fw-bold mb-1">Henüz Soru Seçilmedi</h6>
+                            <p class="mb-0">Lütfen sınav oluşturmak için soru seçimi yapınız.</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="@Url.Action("CreateExam", "Exams")" class="btn btn-primary">
+                                <i class="bx bx-plus me-1"></i> Soru Seç
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Remove question button
+            $('.remove-question').click(function() {
+                var button = $(this);
+                var questionId = button.data('question-id');
+                
+                $.ajax({
+                    url: '@Url.Action("RemoveQuestionFromSelection", "Exams")',
+                    type: 'POST',
+                    data: { questionId: questionId },
+                    success: function(response) {
+                        if (response.success) {
+                            // Remove row
+                            button.closest('tr').remove();
+                            
+                            // If no questions left, reload page
+                            if ($('tbody tr').length === 0) {
+                                location.reload();
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+} 

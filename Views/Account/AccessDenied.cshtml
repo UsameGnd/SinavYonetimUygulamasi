@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Erişim Reddedildi";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <h1 class="display-1 text-danger mb-4"><i class="bx bx-error-circle"></i></h1>
+                    <h2 class="mb-4">Erişim Reddedildi</h2>
+                    <p class="mb-4">Bu sayfaya erişim izniniz bulunmamaktadır.</p>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Ana Sayfaya Dön</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
